@@ -1,0 +1,47 @@
+import { WEEKLY_FEE } from "../config/constants"
+
+export function computeUniqueCode(nim: string): { uniqueCode: number } | null {
+  if (!/^[0-9]+$/.test(nim) || nim.length < 4) {
+    return null
+  }
+
+  const angkatanStr = nim.substring(0, 2)
+  const angkatan = Number.parseInt(angkatanStr, 10)
+
+  if (![23, 24, 25].includes(angkatan)) {
+    return null
+  }
+
+  const last2Str = nim.slice(-2)
+  const uniqueCode = Number.parseInt(last2Str, 10)
+
+  return {
+    uniqueCode,
+  }
+}
+
+export function calculateTotalPayment(weeks: number, nim: string): number {
+  const result = computeUniqueCode(nim)
+  if (!result) return 0
+
+  return weeks * WEEKLY_FEE + result.uniqueCode
+}
+
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(amount)
+}
+
+export function generateWhatsAppMessage(data: {
+  name: string
+  weeks: number
+  nim: string
+  uniqueCode: number
+  totalAmount: number
+  eventName: string
+}): string {
+  return `Halo Admin, saya ${data.name}, NIM: ${data.nim}, ingin konfirmasi pembayaran kas kelas untuk ${data.weeks} pekan. Kode unik: ${data.uniqueCode}, jumlah: ${formatCurrency(data.totalAmount)}. Mohon lampirkan bukti transfer setelah pesan ini.`
+}
